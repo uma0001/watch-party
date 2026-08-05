@@ -114,11 +114,15 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       playerVars: {
         autoplay: playbackState.playState === 'playing' ? 1 : 0,
         controls: canControlPlayback ? 1 : 0,
-        disablekb: canControlPlayback ? 0 : 1,
+        disablekb: 1,
         modestbranding: 1,
         rel: 0,
+        iv_load_policy: 3,
+        cc_load_policy: 0,
+        fs: 0,
         enablejsapi: 1,
         origin: window.location.origin,
+        widget_referrer: window.location.origin,
       },
       events: {
         onReady: (event: any) => {
@@ -259,9 +263,29 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   }
 
   return (
-    <div ref={wrapperRef} className="relative w-full aspect-video rounded-2xl lg:rounded-3xl overflow-hidden bg-black border border-zinc-800 shadow-2xl group">
+    <div ref={wrapperRef} className="relative w-full aspect-video rounded-2xl lg:rounded-3xl overflow-hidden bg-black border border-zinc-800 shadow-2xl group select-none">
       {/* YouTube Player Mount */}
-      <div ref={containerRef} className="w-full h-full" />
+      <div ref={containerRef} className="w-full h-full pointer-events-auto" />
+
+      {/* Top Header Shield: Intercepts clicks on YouTube title bar & share links to prevent navigating away */}
+      <div
+        className="absolute top-0 left-0 right-0 h-16 z-20 pointer-events-auto bg-transparent cursor-default"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+      />
+
+      {/* Full Player Shield for Viewer Mode (Participants cannot click inside iframe) */}
+      {!canControlPlayback && (
+        <div
+          className="absolute inset-0 z-20 pointer-events-auto bg-transparent cursor-default"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+        />
+      )}
 
       {/* Floating Live Stream Emoji Reactions */}
       <FloatingReactions reactions={reactions} />
