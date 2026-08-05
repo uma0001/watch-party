@@ -12,9 +12,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, roomId, onClose 
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
 
-  if (!isOpen) return null;
-
-  const shareUrl = `${window.location.origin}/?room=${roomId}`;
+  const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/?room=${roomId}` : '';
   const shareText = `Join my Watch Party! Watch YouTube videos with me in real-time sync. Room Code: ${roomId}`;
 
   const handleCopyLink = () => {
@@ -39,7 +37,8 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, roomId, onClose 
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -157,7 +156,8 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, roomId, onClose 
             </div>
           </div>
         </motion.div>
-      </div>
+        </div>
+      )}
     </AnimatePresence>
   );
 };
