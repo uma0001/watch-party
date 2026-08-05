@@ -90,6 +90,7 @@ export function registerRoomHandlers(io: Server, socket: Socket): void {
           username: removedParticipant.username,
           participants: room.getSortedParticipants().map((p) => p.toJSON()),
         });
+        io.to(room.roomId).emit('room_state', room.toState());
       }
     });
   });

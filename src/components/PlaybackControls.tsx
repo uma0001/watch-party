@@ -102,6 +102,7 @@ export const PlaybackControls: React.FC<PlaybackControlsProps> = ({
           <button
             onClick={handleSkipBackward}
             disabled={!canControlPlayback}
+            aria-label="Rewind 10 seconds"
             className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
               !canControlPlayback
                 ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed opacity-50'
@@ -119,6 +120,7 @@ export const PlaybackControls: React.FC<PlaybackControlsProps> = ({
           <button
             onClick={handlePlayPauseToggle}
             disabled={!canControlPlayback}
+            aria-label={canControlPlayback ? (isPlaying ? 'Pause video' : 'Play video') : 'Playback locked'}
             className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-all ${
               !canControlPlayback
                 ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-60'
@@ -141,6 +143,7 @@ export const PlaybackControls: React.FC<PlaybackControlsProps> = ({
           <button
             onClick={handleSkipForward}
             disabled={!canControlPlayback}
+            aria-label="Skip forward 10 seconds"
             className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
               !canControlPlayback
                 ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed opacity-50'
@@ -170,6 +173,7 @@ export const PlaybackControls: React.FC<PlaybackControlsProps> = ({
             value={Math.floor(localTime)}
             onChange={handleSeekChange}
             disabled={!canControlPlayback}
+            aria-label="Seek video timeline"
             className={`w-full h-2 rounded-lg appearance-none bg-zinc-800 accent-indigo-500 cursor-pointer ${
               !canControlPlayback ? 'opacity-50 cursor-not-allowed' : 'hover:bg-zinc-700'
             }`}
@@ -180,6 +184,7 @@ export const PlaybackControls: React.FC<PlaybackControlsProps> = ({
         {onToggleFullscreen && (
           <button
             onClick={onToggleFullscreen}
+            aria-label="Toggle fullscreen mode"
             className="px-3.5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/20 text-xs font-semibold transition-all flex items-center gap-2 shrink-0"
             title="Toggle Fullscreen Mode"
           >

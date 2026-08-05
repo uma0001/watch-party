@@ -3,6 +3,21 @@ import { SendChatPayload } from '../../src/types/watchParty.js';
 import { RoomManager } from '../managers/RoomManager.js';
 import { RoomError, RoomNotFoundError } from '../types/errors.js';
 
+const messageTimestampsMap = new Map<string, number[]>();
+const reactionTimestampsMap = new Map<string, number[]>();
+
+function checkRateLimit(map: Map<string, number[]>, socketId: string, maxCount: number, windowMs: number): boolean {
+  const now = Date.now();
+  const timestamps = (map.get(socketId) || []).filter((t) => now - t < windowMs);
+  if (timestamps.length >= maxCount) {
+    map.set(socketId, timestamps);
+    return false;
+  }
+  timestamps.push(now);
+  map.set(socketId, timestamps);
+  return true;
+}
+
 export function registerChatHandlers(io: Server, socket: Socket): void {
   const roomManager = RoomManager.getInstance();
 
@@ -25,6 +40,11 @@ export function registerChatHandlers(io: Server, socket: Socket): void {
 
       if (text.length > 500) {
         throw new RoomError('Chat message exceeds max length of 500 characters');
+      }
+
+      // Rate limit: Max 5 messages in 3 seconds
+      if (!checkRateLimit(messageTimestampsMap, socket.id, 5, 3000)) {
+        throw new RoomError('Sending chat messages too fast. Please wait a moment.');
       }
 
       const username = socket.data.username || 'Anonymous';
@@ -53,6 +73,11 @@ export function registerChatHandlers(io: Server, socket: Socket): void {
       const emoji = (payload?.emoji || '').trim();
       if (!emoji) return;
 
+      // Rate limit: Max 10 reactions in 3 seconds
+      if (!checkRateLimit(reactionTimestampsMap, socket.id, 10, 3000)) {
+        return;
+      }
+
       const username = socket.data.username || 'Anonymous';
 
       io.to(room.roomId).emit('live_reaction_received', {
@@ -65,5 +90,10 @@ export function registerChatHandlers(io: Server, socket: Socket): void {
     } catch {
       // Ignore reaction errors
     }
+  });
+
+  socket.on('disconnect', () => {
+    messageTimestampsMap.delete(socket.id);
+    reactionTimestampsMap.delete(socket.id);
   });
 }

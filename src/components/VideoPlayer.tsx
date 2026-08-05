@@ -171,7 +171,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       setIsPlayerReady(false);
       if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
     };
-  }, [isApiReady, playbackState?.videoId]);
+  }, [isApiReady, playbackState?.videoId, canControlPlayback]);
 
   // 3. React to server playback state updates smoothly
   useEffect(() => {

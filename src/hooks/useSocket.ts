@@ -25,10 +25,12 @@ export function useSocket() {
   const [status, setStatus] = useState<ConnectionStatus>(
     socket.connected ? 'connected' : 'connecting'
   );
+  const [socketId, setSocketId] = useState<string | undefined>(socket.id);
 
   useEffect(() => {
     function onConnect() {
       setStatus('connected');
+      setSocketId(socket.id);
     }
 
     function onDisconnect() {
@@ -50,6 +52,7 @@ export function useSocket() {
 
     if (socket.connected) {
       setStatus('connected');
+      setSocketId(socket.id);
     } else {
       socket.connect();
     }
@@ -62,5 +65,5 @@ export function useSocket() {
     };
   }, [socket]);
 
-  return { socket, status, socketId: socket.id };
+  return { socket, status, socketId: socketId || socket.id };
 }

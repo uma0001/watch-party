@@ -49,12 +49,13 @@ export class Room {
     username: string,
     sessionId?: string
   ): { participant: Participant; isReconnection: boolean } {
-    // 1. Check for existing participant session by sessionId or username
+    // 1. Check for existing participant session strictly by sessionId or disconnected username
     for (const [existingSocketId, existingParticipant] of this.participants.entries()) {
-      const matchSession = sessionId && existingParticipant.sessionId === sessionId;
+      const matchSession = Boolean(sessionId && existingParticipant.sessionId === sessionId);
       const matchUsername = existingParticipant.username.toLowerCase() === username.toLowerCase();
 
-      if (matchSession || matchUsername) {
+      // Only reclaim session if sessionId matches, OR if username matches and the existing user is marked disconnected
+      if (matchSession || (matchUsername && existingParticipant.isDisconnected)) {
         if (existingParticipant.disconnectTimer) {
           clearTimeout(existingParticipant.disconnectTimer);
           existingParticipant.disconnectTimer = undefined;
@@ -77,11 +78,23 @@ export class Room {
       }
     }
 
-    // 2. New Participant
+    // 2. Resolve username collision for new connected participant if username is already taken
+    let finalUsername = username.trim() || 'Anonymous';
+    let counter = 1;
+    const existingUsernames = new Set(
+      Array.from(this.participants.values()).map((p) => p.username.toLowerCase())
+    );
+
+    while (existingUsernames.has(finalUsername.toLowerCase())) {
+      finalUsername = `${username.trim()} (${counter})`;
+      counter++;
+    }
+
+    // 3. New Participant
     const isFirstParticipant = this.participants.size === 0;
     const role: Role = isFirstParticipant ? 'host' : 'participant';
 
-    const participant = new Participant(userId, username, role, sessionId);
+    const participant = new Participant(userId, finalUsername, role, sessionId);
     this.participants.set(userId, participant);
 
     if (isFirstParticipant) {
@@ -273,7 +286,7 @@ export class Room {
     const now = Date.now();
     if (this.playback.playState === 'playing') {
       const elapsedSeconds = (now - this.playback.updatedAt) / 1000;
-      return {
+      this.playback = {
         ...this.playback,
         currentTime: this.playback.currentTime + elapsedSeconds,
         updatedAt: now,
