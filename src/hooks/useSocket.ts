@@ -7,7 +7,8 @@ let socketInstance: Socket | null = null;
 
 export function getSocket(): Socket {
   if (!socketInstance) {
-    socketInstance = io({
+    const socketUrl = import.meta.env.VITE_SOCKET_URL || undefined;
+    socketInstance = io(socketUrl, {
       autoConnect: true,
       reconnection: true,
       reconnectionAttempts: 10,
