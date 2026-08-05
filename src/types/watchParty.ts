@@ -45,6 +45,7 @@ export interface JoinRoomPayload {
   roomId: string;
   username: string;
   initialVideoId?: string;
+  sessionId?: string;
 }
 
 export interface LeaveRoomPayload {

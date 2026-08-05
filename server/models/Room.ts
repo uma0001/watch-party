@@ -44,38 +44,82 @@ export class Room {
   }
 
   // --- Participant Operations ---
-  public addParticipant(userId: string, username: string): Participant {
-    // Check if participant is reconnecting under the same username
+  public addParticipant(
+    userId: string,
+    username: string,
+    sessionId?: string
+  ): { participant: Participant; isReconnection: boolean } {
+    // 1. Check for existing participant session by sessionId or username
     for (const [existingSocketId, existingParticipant] of this.participants.entries()) {
-      if (existingParticipant.username.toLowerCase() === username.toLowerCase() && existingSocketId !== userId) {
-        const role = existingParticipant.role;
-        this.participants.delete(existingSocketId);
-        const participant = new Participant(userId, username, role);
-        this.participants.set(userId, participant);
-        if (role === 'host') {
+      const matchSession = sessionId && existingParticipant.sessionId === sessionId;
+      const matchUsername = existingParticipant.username.toLowerCase() === username.toLowerCase();
+
+      if (matchSession || matchUsername) {
+        if (existingParticipant.disconnectTimer) {
+          clearTimeout(existingParticipant.disconnectTimer);
+          existingParticipant.disconnectTimer = undefined;
+        }
+
+        if (existingSocketId !== userId) {
+          this.participants.delete(existingSocketId);
+        }
+
+        existingParticipant.userId = userId;
+        existingParticipant.isDisconnected = false;
+        if (sessionId) existingParticipant.sessionId = sessionId;
+        this.participants.set(userId, existingParticipant);
+
+        if (existingParticipant.role === 'host') {
           this.hostId = userId;
         }
-        return participant;
+
+        return { participant: existingParticipant, isReconnection: true };
       }
     }
 
+    // 2. New Participant
     const isFirstParticipant = this.participants.size === 0;
     const role: Role = isFirstParticipant ? 'host' : 'participant';
 
-    const participant = new Participant(userId, username, role);
+    const participant = new Participant(userId, username, role, sessionId);
     this.participants.set(userId, participant);
 
     if (isFirstParticipant) {
       this.hostId = userId;
     }
 
-    return participant;
+    return { participant, isReconnection: false };
+  }
+
+  public markDisconnected(userId: string, onGraceExpired: (removed: Participant) => void): boolean {
+    const participant = this.participants.get(userId);
+    if (!participant) return false;
+
+    participant.isDisconnected = true;
+    if (participant.disconnectTimer) {
+      clearTimeout(participant.disconnectTimer);
+    }
+
+    // 45s grace period for reconnecting before purging
+    participant.disconnectTimer = setTimeout(() => {
+      if (participant.isDisconnected && this.participants.has(userId)) {
+        this.removeParticipant(userId);
+        onGraceExpired(participant);
+      }
+    }, 45000);
+
+    return true;
   }
 
   public removeParticipant(userId: string): { removed: Participant | undefined; newHostId: string | null } {
     const participant = this.participants.get(userId);
     if (!participant) {
       return { removed: undefined, newHostId: this.hostId || null };
+    }
+
+    if (participant.disconnectTimer) {
+      clearTimeout(participant.disconnectTimer);
+      participant.disconnectTimer = undefined;
     }
 
     this.participants.delete(userId);
@@ -96,16 +140,21 @@ export class Room {
       return null;
     }
 
-    // Check if current host is still in the room
+    // Check if current host is still in the room and NOT permanently disconnected
     if (this.hostId && this.participants.has(this.hostId)) {
-      return this.hostId;
+      const currentHost = this.participants.get(this.hostId);
+      if (currentHost && !currentHost.isDisconnected) {
+        return this.hostId;
+      }
     }
 
-    // Find the next longest-tenured participant (earliest joinedAt)
+    // Find the next longest-tenured active participant (earliest joinedAt & not disconnected)
     let oldestParticipant: Participant | null = null;
     for (const p of this.participants.values()) {
-      if (!oldestParticipant || p.joinedAt < oldestParticipant.joinedAt) {
-        oldestParticipant = p;
+      if (!p.isDisconnected) {
+        if (!oldestParticipant || p.joinedAt < oldestParticipant.joinedAt) {
+          oldestParticipant = p;
+        }
       }
     }
 

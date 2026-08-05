@@ -27,7 +27,7 @@ export function registerRoomHandlers(io: Server, socket: Socket): void {
         handleUserLeave(io, socket, socket.data.roomId);
       }
 
-      const participant = room.addParticipant(socket.id, username);
+      const { participant, isReconnection } = room.addParticipant(socket.id, username, payload.sessionId);
 
       socket.data.roomId = room.roomId;
       socket.data.username = participant.username;
@@ -40,19 +40,24 @@ export function registerRoomHandlers(io: Server, socket: Socket): void {
       // 2. Hydrate full room state privately to joining socket
       socket.emit('room_state', room.toState());
 
-      // 3. Broadcast user_joined to everyone in the room
-      io.to(room.roomId).emit('user_joined', {
-        userId: socket.id,
-        username: participant.username,
-        participants: room.getSortedParticipants().map((p) => p.toJSON()),
-      });
+      // 3. Broadcast user_joined only if this is a new participant (not a silent reconnection)
+      if (!isReconnection) {
+        io.to(room.roomId).emit('user_joined', {
+          userId: socket.id,
+          username: participant.username,
+          participants: room.getSortedParticipants().map((p) => p.toJSON()),
+        });
+      } else {
+        // Broadcast updated participant list to room without notification spam
+        io.to(room.roomId).emit('room_state', room.toState());
+      }
     } catch (err: unknown) {
       const message = err instanceof RoomError ? err.message : 'Failed to join room';
       socket.emit('action_error', { event: 'join_room', message });
     }
   });
 
-  // LEAVE ROOM
+  // LEAVE ROOM (Explicit User Action)
   socket.on('leave_room', (payload: LeaveRoomPayload) => {
     try {
       const roomId = payload?.roomId || socket.data.roomId;
@@ -65,18 +70,28 @@ export function registerRoomHandlers(io: Server, socket: Socket): void {
     }
   });
 
-  // DISCONNECT HANDLER
+  // DISCONNECT HANDLER (Grace Period Buffer for Network Drops / Tab Backgrounding)
   socket.on('disconnect', () => {
-    const results = roomManager.handleDisconnectUser(socket.id);
-    for (const { room, removed, isRoomEmpty } of results) {
-      if (!isRoomEmpty) {
+    const roomId = socket.data.roomId;
+    if (!roomId) return;
+
+    const roomManager = RoomManager.getInstance();
+    const room = roomManager.getRoom(roomId);
+    if (!room) return;
+
+    // Mark participant as disconnected with 45s grace period before purging
+    room.markDisconnected(socket.id, (removedParticipant) => {
+      // Called only after 45s grace period expires
+      if (room.participants.size === 0) {
+        roomManager.deleteRoom(room.roomId);
+      } else {
         io.to(room.roomId).emit('user_left', {
           userId: socket.id,
-          username: removed.username,
+          username: removedParticipant.username,
           participants: room.getSortedParticipants().map((p) => p.toJSON()),
         });
       }
-    }
+    });
   });
 }
 

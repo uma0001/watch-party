@@ -27,9 +27,18 @@ export function useRoom() {
   const [playbackState, setPlaybackState] = useState<PlaybackState | null>(null);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [liveReactions, setLiveReactions] = useState<LiveReaction[]>([]);
+  const getSessionId = useCallback(() => {
+    let sid = sessionStorage.getItem('wp_session_id');
+    if (!sid) {
+      sid = `sid_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+      sessionStorage.setItem('wp_session_id', sid);
+    }
+    return sid;
+  }, []);
+
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [kickedReason, setKickedReason] = useState<string | null>(null);
-  const joinedRoomInfoRef = useRef<{ roomId: string; username: string } | null>(null);
+  const joinedRoomInfoRef = useRef<{ roomId: string; username: string; sessionId?: string } | null>(null);
   const toastTimersRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
   const lastToastRef = useRef<{ message: string; timestamp: number } | null>(null);
 
@@ -101,7 +110,10 @@ export function useRoom() {
     function onConnect() {
       if (joinedRoomInfoRef.current) {
         console.log('[Sync] Socket connected/reconnected. Joining room & requesting sync...');
-        socket.emit('join_room', joinedRoomInfoRef.current);
+        socket.emit('join_room', {
+          ...joinedRoomInfoRef.current,
+          sessionId: getSessionId(),
+        });
         socket.emit('request_sync');
       }
     }
@@ -231,10 +243,11 @@ export function useRoom() {
   const joinRoom = useCallback(
     (roomId: string, username: string, initialVideoId?: string) => {
       if (!socket) return;
-      joinedRoomInfoRef.current = { roomId, username };
-      socket.emit('join_room', { roomId, username, initialVideoId });
+      const sessionId = getSessionId();
+      joinedRoomInfoRef.current = { roomId, username, sessionId };
+      socket.emit('join_room', { roomId, username, initialVideoId, sessionId });
     },
-    [socket]
+    [socket, getSessionId]
   );
 
   const leaveRoom = useCallback(() => {
