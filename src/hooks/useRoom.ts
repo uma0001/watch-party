@@ -30,15 +30,60 @@ export function useRoom() {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [kickedReason, setKickedReason] = useState<string | null>(null);
   const joinedRoomInfoRef = useRef<{ roomId: string; username: string } | null>(null);
-
-  const addToast = useCallback((type: ToastMessage['type'], message: string) => {
-    const id = `toast-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
-    setToasts((prev) => [...prev.slice(-4), { id, type, message, timestamp: Date.now() }]);
-  }, []);
+  const toastTimersRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
+  const lastToastRef = useRef<{ message: string; timestamp: number } | null>(null);
 
   const removeToast = useCallback((id: string) => {
+    const timer = toastTimersRef.current.get(id);
+    if (timer) {
+      clearTimeout(timer);
+      toastTimersRef.current.delete(id);
+    }
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
+
+  const addToast = useCallback((type: ToastMessage['type'], message: string) => {
+    // Deduplicate identical toasts within 1.5s
+    const now = Date.now();
+    if (lastToastRef.current && lastToastRef.current.message === message && now - lastToastRef.current.timestamp < 1500) {
+      return;
+    }
+    lastToastRef.current = { message, timestamp: now };
+
+    const id = `toast-${now}-${Math.random().toString(36).substring(2, 6)}`;
+    const duration = type === 'error' ? 6000 : 4000;
+
+    setToasts((prev) => [...prev.slice(-3), { id, type, message, timestamp: now }]);
+
+    // Auto-dismiss timer
+    const timer = setTimeout(() => {
+      removeToast(id);
+    }, duration);
+    toastTimersRef.current.set(id, timer);
+  }, [removeToast]);
+
+  // Clean up timers on unmount
+  useEffect(() => {
+    return () => {
+      toastTimersRef.current.forEach((timer) => clearTimeout(timer));
+      toastTimersRef.current.clear();
+    };
+  }, []);
+
+  // Handle Tab Switch & Background/Foreground Recovery
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && joinedRoomInfoRef.current && socket) {
+        console.log('[Sync] Tab returned to foreground. Requesting room synchronization...');
+        socket.emit('request_sync');
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [socket]);
 
   const myParticipant = useMemo(() => {
     if (!roomState || !socketId) return null;
@@ -55,11 +100,14 @@ export function useRoom() {
 
     function onConnect() {
       if (joinedRoomInfoRef.current) {
+        console.log('[Sync] Socket connected/reconnected. Joining room & requesting sync...');
         socket.emit('join_room', joinedRoomInfoRef.current);
+        socket.emit('request_sync');
       }
     }
 
     function onSyncState(playback: PlaybackState) {
+      console.log('[Sync] Received sync_state:', playback);
       setPlaybackState(playback);
       setRoomState((prev) => (prev ? { ...prev, playback } : null));
     }

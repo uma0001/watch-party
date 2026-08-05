@@ -45,6 +45,20 @@ export class Room {
 
   // --- Participant Operations ---
   public addParticipant(userId: string, username: string): Participant {
+    // Check if participant is reconnecting under the same username
+    for (const [existingSocketId, existingParticipant] of this.participants.entries()) {
+      if (existingParticipant.username.toLowerCase() === username.toLowerCase() && existingSocketId !== userId) {
+        const role = existingParticipant.role;
+        this.participants.delete(existingSocketId);
+        const participant = new Participant(userId, username, role);
+        this.participants.set(userId, participant);
+        if (role === 'host') {
+          this.hostId = userId;
+        }
+        return participant;
+      }
+    }
+
     const isFirstParticipant = this.participants.size === 0;
     const role: Role = isFirstParticipant ? 'host' : 'participant';
 
@@ -207,11 +221,13 @@ export class Room {
 
   // --- Helper Methods ---
   public getExtrapolatedPlayback(): PlaybackState {
+    const now = Date.now();
     if (this.playback.playState === 'playing') {
-      const elapsedSeconds = (Date.now() - this.playback.updatedAt) / 1000;
+      const elapsedSeconds = (now - this.playback.updatedAt) / 1000;
       return {
         ...this.playback,
         currentTime: this.playback.currentTime + elapsedSeconds,
+        updatedAt: now,
       };
     }
     return { ...this.playback };

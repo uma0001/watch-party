@@ -32,6 +32,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   onPlay,
   onPause,
   onSeek,
+  onRequestSync,
   onDurationChange,
   reactions = [],
   ref,
@@ -41,6 +42,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const playerRef = useRef<any>(null);
   const [isApiReady, setIsApiReady] = useState(false);
   const [isPlayerReady, setIsPlayerReady] = useState(false);
+  const [autoplayBlocked, setAutoplayBlocked] = useState(false);
 
   const isInternalChangeRef = useRef(false);
   const resetTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -131,8 +133,15 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           if (dur > 0 && onDurationChange) {
             onDurationChange(dur);
           }
+          if (onRequestSync) {
+            onRequestSync();
+          }
         },
         onStateChange: (event: any) => {
+          if (event.data === window.YT.PlayerState.PLAYING) {
+            setAutoplayBlocked(false);
+          }
+
           if (!canControlPlayback || isInternalChangeRef.current) return;
 
           const player = playerRef.current;
@@ -196,12 +205,19 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       player.seekTo(targetTime, true);
     }
 
-    // Play / Pause state sync
+    // Play / Pause state sync with Autoplay guard
     const playerState = player.getPlayerState ? player.getPlayerState() : -1;
     if (playbackState.playState === 'playing' && playerState !== window.YT?.PlayerState?.PLAYING) {
       flagInternalChange(800);
       if (typeof player.playVideo === 'function') {
-        player.playVideo();
+        try {
+          const res = player.playVideo();
+          if (res && typeof res.catch === 'function') {
+            res.catch(() => setAutoplayBlocked(true));
+          }
+        } catch {
+          setAutoplayBlocked(true);
+        }
       }
     } else if (playbackState.playState === 'paused' && playerState === window.YT?.PlayerState?.PLAYING) {
       flagInternalChange(800);
@@ -285,6 +301,30 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             e.stopPropagation();
           }}
         />
+      )}
+
+      {/* Autoplay Policy Restriction Guard: Click to Resume Stream Sync Overlay */}
+      {autoplayBlocked && (
+        <div
+          onClick={() => {
+            setAutoplayBlocked(false);
+            if (playerRef.current?.playVideo) {
+              playerRef.current.playVideo();
+            }
+            onRequestSync?.();
+          }}
+          className="absolute inset-0 z-40 bg-black/85 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center cursor-pointer group pointer-events-auto"
+        >
+          <div className="w-16 h-16 rounded-full bg-indigo-600/90 border border-indigo-400/30 text-white flex items-center justify-center shadow-2xl mb-4 group-hover:scale-110 transition-transform">
+            <PlayCircle className="w-8 h-8 fill-white/20" />
+          </div>
+          <h3 className="text-xl font-bold text-white tracking-tight">
+            Click to Resume Stream Sync
+          </h3>
+          <p className="text-xs text-zinc-400 mt-2 max-w-sm">
+            Browser paused video playback while tab was in background. Click anywhere to sync with host!
+          </p>
+        </div>
       )}
 
       {/* Floating Live Stream Emoji Reactions */}
