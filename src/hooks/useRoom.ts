@@ -83,7 +83,6 @@ export function useRoom() {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && joinedRoomInfoRef.current && socket) {
-        console.log('[Sync] Tab returned to foreground. Requesting room synchronization...');
         socket.emit('request_sync');
       }
     };
@@ -109,7 +108,6 @@ export function useRoom() {
 
     function onConnect() {
       if (joinedRoomInfoRef.current) {
-        console.log('[Sync] Socket connected/reconnected. Joining room & requesting sync...');
         socket.emit('join_room', {
           ...joinedRoomInfoRef.current,
           sessionId: getSessionId(),
@@ -119,7 +117,6 @@ export function useRoom() {
     }
 
     function onSyncState(playback: PlaybackState) {
-      console.log('[Sync] Received sync_state:', playback);
       setPlaybackState(playback);
       setRoomState((prev) => (prev ? { ...prev, playback } : null));
     }

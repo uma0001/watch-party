@@ -88,10 +88,21 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         ) : (
           messages.map((msg) => {
             const isMe = msg.userId === currentUserId;
+            const isSystem = msg.isSystem;
             const timeStr = new Date(msg.timestamp).toLocaleTimeString([], {
               hour: '2-digit',
               minute: '2-digit',
             });
+
+            if (isSystem) {
+              return (
+                <div key={msg.id} className="flex items-center gap-2 my-1">
+                  <div className="flex-1 h-px bg-zinc-800" />
+                  <span className="text-[10px] text-zinc-500 font-medium shrink-0 px-2">{msg.text}</span>
+                  <div className="flex-1 h-px bg-zinc-800" />
+                </div>
+              );
+            }
 
             return (
               <div

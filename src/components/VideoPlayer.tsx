@@ -115,7 +115,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       videoId: playbackState.videoId,
       playerVars: {
         autoplay: playbackState.playState === 'playing' ? 1 : 0,
-        controls: canControlPlayback ? 1 : 0,
+        controls: 0,
         disablekb: 1,
         modestbranding: 1,
         rel: 0,

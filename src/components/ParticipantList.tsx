@@ -1,5 +1,5 @@
-import { Crown, MoreVertical, Shield, ShieldAlert, User, UserCheck, UserMinus, UserX } from 'lucide-react';
-import React, { useState } from 'react';
+import { Crown, MoreVertical, Shield, User, UserMinus, UserX } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Participant, Role } from '../types/watchParty';
 import { ConfirmModal } from './ConfirmModal';
 
@@ -25,6 +25,20 @@ export const ParticipantList: React.FC<ParticipantListProps> = ({
     type: 'kick' | 'transfer';
     user: Participant;
   } | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setActiveMenuUserId(null);
+      }
+    };
+    if (activeMenuUserId) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [activeMenuUserId]);
 
   const handleKickConfirm = () => {
     if (!modalTarget) return;
@@ -101,7 +115,7 @@ export const ParticipantList: React.FC<ParticipantListProps> = ({
 
               {/* Host Control Actions */}
               {isHost && !isMe && (
-                <div className="relative">
+                <div className="relative" ref={menuRef}>
                   <button
                     onClick={() => setActiveMenuUserId(activeMenuUserId === p.userId ? null : p.userId)}
                     className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
@@ -113,7 +127,6 @@ export const ParticipantList: React.FC<ParticipantListProps> = ({
                   {activeMenuUserId === p.userId && (
                     <div
                       className="absolute right-0 top-8 z-30 w-48 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl p-1.5 space-y-1"
-                      onMouseLeave={() => setActiveMenuUserId(null)}
                     >
                       {p.role === 'participant' ? (
                         <button

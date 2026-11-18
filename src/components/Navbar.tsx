@@ -1,4 +1,4 @@
-import { Check, Copy, LogOut, Radio, Share2, Tv, Users } from 'lucide-react';
+import { Check, Copy, Crown, LogOut, Radio, Share2, Shield, Tv, Users } from 'lucide-react';
 import React, { useState } from 'react';
 import { ConnectionStatus } from '../hooks/useSocket';
 
@@ -6,6 +6,7 @@ interface NavbarProps {
   roomId: string | null;
   participantCount: number;
   socketStatus: ConnectionStatus;
+  myRole?: 'host' | 'moderator' | 'participant' | null;
   onLeaveRoom: () => void;
   onOpenShare?: () => void;
   onToggleSidebar?: () => void;
@@ -15,6 +16,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   roomId,
   participantCount,
   socketStatus,
+  myRole,
   onLeaveRoom,
   onOpenShare,
 }) => {
@@ -101,6 +103,20 @@ export const Navbar: React.FC<NavbarProps> = ({
               <Share2 className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Share</span>
             </button>
+          )}
+
+          {/* My Role Badge */}
+          {myRole === 'host' && (
+            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold">
+              <Crown className="w-3.5 h-3.5" />
+              <span>Host</span>
+            </div>
+          )}
+          {myRole === 'moderator' && (
+            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-400 text-xs font-semibold">
+              <Shield className="w-3.5 h-3.5" />
+              <span>Moderator</span>
+            </div>
           )}
 
           {/* Participant count */}

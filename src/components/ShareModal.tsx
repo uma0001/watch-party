@@ -38,12 +38,19 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, roomId, onClose 
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md cursor-pointer"
+          onClick={onClose}
+        >
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 10 }}
-          className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 max-w-md w-full shadow-2xl relative"
+          className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 max-w-md w-full shadow-2xl relative cursor-default"
+          onClick={(e) => e.stopPropagation()}
         >
           {/* Close button */}
           <button
@@ -156,7 +163,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, roomId, onClose 
             </div>
           </div>
         </motion.div>
-        </div>
+        </motion.div>
       )}
     </AnimatePresence>
   );

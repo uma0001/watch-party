@@ -18,6 +18,7 @@ export default function App() {
     myParticipant,
     canControlPlayback,
     isHost,
+    isModerator,
     chatMessages,
     liveReactions,
     toasts,
@@ -61,6 +62,7 @@ export default function App() {
         roomId={roomState?.roomId || null}
         participantCount={roomState?.participants.length || 0}
         socketStatus={socketStatus}
+        myRole={myParticipant?.role || null}
         onLeaveRoom={leaveRoom}
         onOpenShare={() => setIsShareOpen(true)}
       />
