@@ -1,4 +1,4 @@
-import { Check, Copy, Crown, LogOut, Radio, Share2, Shield, Tv, Users } from 'lucide-react';
+import { Check, Copy, Crown, LogOut, Radio, Share2, Shield, Users } from 'lucide-react';
 import React, { useState } from 'react';
 import { ConnectionStatus } from '../hooks/useSocket';
 
@@ -34,12 +34,12 @@ export const Navbar: React.FC<NavbarProps> = ({
     <header className="h-14 border-b border-zinc-800 bg-zinc-950 px-4 lg:px-6 flex items-center justify-between sticky top-0 z-40">
       {/* Brand */}
       <div className="flex items-center gap-2.5">
-        <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white">
-          <Tv className="w-4 h-4" />
+        <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white text-base">
+          🎬
         </div>
         <div>
           <span className="font-bold text-white text-sm tracking-wide">Watch Party</span>
-          <span className="hidden sm:inline text-zinc-600 text-xs ml-2">Sync</span>
+          <span className="hidden sm:inline text-zinc-600 text-xs ml-2">🍿 Sync</span>
         </div>
       </div>
 

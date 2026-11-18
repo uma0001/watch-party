@@ -17,43 +17,113 @@
   }
 }
 
-/* Seek slider fill effect */
+/* Seek slider */
 input[type='range'] {
   -webkit-appearance: none;
   appearance: none;
   outline: none;
   cursor: pointer;
 }
-
 input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #6366f1;
+  background: #3b82f6;
   cursor: pointer;
-  box-shadow: 0 0 6px rgba(99, 102, 241, 0.6);
-  border: 2px solid rgba(255,255,255,0.15);
+  box-shadow: 0 0 6px rgba(59, 130, 246, 0.5);
+  border: 2px solid rgba(255,255,255,0.1);
   transition: transform 0.1s;
 }
-
 input[type='range']::-webkit-slider-thumb:hover {
   transform: scale(1.2);
 }
-
 input[type='range']:disabled::-webkit-slider-thumb {
   background: #3f3f46;
   box-shadow: none;
   cursor: not-allowed;
 }
-
 input[type='range']::-webkit-slider-runnable-track {
-  height: 6px;
+  height: 4px;
   border-radius: 9999px;
   background: #3f3f46;
 }
-
 input[type='range']:focus::-webkit-slider-thumb {
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+/* ===== WATCH PARTY FUN BACKGROUND ===== */
+
+/* Floating emoji particles */
+@keyframes float-up {
+  0%   { transform: translateY(0) rotate(0deg) scale(1);   opacity: 0.7; }
+  50%  { transform: translateY(-45vh) rotate(15deg) scale(1.1); opacity: 0.5; }
+  100% { transform: translateY(-95vh) rotate(-10deg) scale(0.8); opacity: 0; }
+}
+
+@keyframes sway {
+  0%, 100% { transform: translateX(0); }
+  50%       { transform: translateX(18px); }
+}
+
+@keyframes float-drift {
+  0%   { transform: translateY(0px) translateX(0px) rotate(0deg);  opacity: 0; }
+  10%  { opacity: 0.6; }
+  90%  { opacity: 0.4; }
+  100% { transform: translateY(-80vh) translateX(30px) rotate(20deg); opacity: 0; }
+}
+
+.party-particle {
+  position: fixed;
+  font-size: 1.5rem;
+  pointer-events: none;
+  z-index: 0;
+  user-select: none;
+  animation: float-drift linear infinite;
+}
+
+/* Projector beam sweep */
+@keyframes projector-sweep {
+  0%   { opacity: 0.03; transform: rotate(-3deg) scaleX(1); }
+  50%  { opacity: 0.06; transform: rotate(3deg) scaleX(1.05); }
+  100% { opacity: 0.03; transform: rotate(-3deg) scaleX(1); }
+}
+
+.projector-beam {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%) rotate(0deg);
+  width: 320px;
+  height: 100vh;
+  background: linear-gradient(to bottom, rgba(255, 200, 80, 0.07) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+  animation: projector-sweep 6s ease-in-out infinite;
+  clip-path: polygon(35% 0%, 65% 0%, 100% 100%, 0% 100%);
+}
+
+/* Subtle vignette on page edges */
+.cinema-vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.6) 100%);
+}
+
+/* Stars twinkle */
+@keyframes twinkle {
+  0%, 100% { opacity: 0.2; transform: scale(1); }
+  50%       { opacity: 0.8; transform: scale(1.3); }
+}
+
+.star-dot {
+  position: fixed;
+  border-radius: 50%;
+  background: white;
+  pointer-events: none;
+  z-index: 0;
+  animation: twinkle ease-in-out infinite;
 }

@@ -3,6 +3,7 @@ import { ChatPanel } from './components/ChatPanel';
 import { Lobby } from './components/Lobby';
 import { Navbar } from './components/Navbar';
 import { ParticipantList } from './components/ParticipantList';
+import { PartyBackground } from './components/PartyBackground';
 import { PlaybackControls } from './components/PlaybackControls';
 import { ShareModal } from './components/ShareModal';
 import { ToastContainer } from './components/ToastContainer';
@@ -76,7 +77,12 @@ export default function App() {
         )}
 
         {!roomState ? (
-          <Lobby onJoinRoom={joinRoom} />
+          <div className="relative">
+            <PartyBackground />
+            <div className="relative z-10">
+              <Lobby onJoinRoom={joinRoom} />
+            </div>
+          </div>
         ) : (
           <div className="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             {/* Left Column: Video Stage & Controls */}
