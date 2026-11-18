@@ -93,6 +93,16 @@ export function useRoom() {
     };
   }, [socket]);
 
+  // Periodic sync — requests a fresh server snapshot every 5s while in a room.
+  // Self-corrects residual drift from buffering delays on join or slow seeks.
+  useEffect(() => {
+    if (!socket || !roomState) return;
+    const interval = setInterval(() => {
+      if (joinedRoomInfoRef.current) socket.emit('request_sync');
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [socket, roomState?.roomId]);
+
   const myParticipant = useMemo(() => {
     if (!roomState || !socketId) return null;
     return roomState.participants.find((p) => p.userId === socketId) || null;
@@ -247,6 +257,10 @@ export function useRoom() {
       const sessionId = getSessionId();
       joinedRoomInfoRef.current = { roomId, username, sessionId };
       socket.emit('join_room', { roomId, username, initialVideoId, sessionId });
+      // Update the URL so the room link is shareable and browser history is correct
+      const url = new URL(window.location.href);
+      url.searchParams.set('room', roomId);
+      window.history.replaceState({}, '', url.toString());
     },
     [socket, getSessionId]
   );
@@ -258,6 +272,10 @@ export function useRoom() {
     setRoomState(null);
     setPlaybackState(null);
     setChatMessages([]);
+    // Clear room param from URL so back button works cleanly
+    const url = new URL(window.location.href);
+    url.searchParams.delete('room');
+    window.history.replaceState({}, '', url.toString());
   }, [socket, roomState]);
 
   const play = useCallback(
