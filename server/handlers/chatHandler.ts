@@ -49,13 +49,18 @@ export function registerChatHandlers(io: Server, socket: Socket): void {
 
       const username = socket.data.username || 'Anonymous';
 
-      io.to(room.roomId).emit('chat_message_received', {
+      const message = {
         id: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
         userId: socket.id,
         username,
         text,
         timestamp: Date.now(),
-      });
+      };
+
+      // Persist to room history so late-joining participants receive it
+      room.addChatMessage(message);
+
+      io.to(room.roomId).emit('chat_message_received', message);
     } catch (err: unknown) {
       const message = err instanceof RoomError ? err.message : 'Failed to send chat message';
       socket.emit('action_error', { event: 'chat_message', message });

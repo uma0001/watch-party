@@ -1,18 +1,22 @@
-import { PlaybackState, Role, RoomState } from '../../src/types/watchParty.js';
+import { ChatMessage, PlaybackState, Role, RoomState } from '../../src/types/watchParty.js';
 import { extractYouTubeId } from '../../src/utils/youtube.js';
 import { PermissionError, ValidationError } from '../types/errors.js';
 import { Participant } from './Participant.js';
+
+const CHAT_HISTORY_LIMIT = 100;
 
 export class Room {
   public readonly roomId: string;
   public hostId: string;
   public participants: Map<string, Participant>;
   public playback: PlaybackState;
+  public chatHistory: ChatMessage[];
 
   constructor(roomId: string, initialVideoId: string | null = null) {
     this.roomId = roomId;
     this.hostId = '';
     this.participants = new Map<string, Participant>();
+    this.chatHistory = [];
     const cleanId = initialVideoId ? extractYouTubeId(initialVideoId) || initialVideoId : null;
     this.playback = {
       videoId: cleanId,
@@ -282,17 +286,26 @@ export class Room {
   }
 
   // --- Helper Methods ---
+  // Pure snapshot — does NOT mutate this.playback
   public getExtrapolatedPlayback(): PlaybackState {
-    const now = Date.now();
     if (this.playback.playState === 'playing') {
+      const now = Date.now();
       const elapsedSeconds = (now - this.playback.updatedAt) / 1000;
-      this.playback = {
+      return {
         ...this.playback,
         currentTime: this.playback.currentTime + elapsedSeconds,
         updatedAt: now,
       };
     }
     return { ...this.playback };
+  }
+
+  // Store a chat message in room history (capped at CHAT_HISTORY_LIMIT)
+  public addChatMessage(message: ChatMessage): void {
+    this.chatHistory.push(message);
+    if (this.chatHistory.length > CHAT_HISTORY_LIMIT) {
+      this.chatHistory.shift();
+    }
   }
 
   public getSortedParticipants(): Participant[] {
@@ -312,6 +325,7 @@ export class Room {
       hostId: this.hostId,
       participants: this.getSortedParticipants().map((p) => p.toJSON()),
       playback: this.getExtrapolatedPlayback(),
+      chatHistory: [...this.chatHistory],
     };
   }
 }

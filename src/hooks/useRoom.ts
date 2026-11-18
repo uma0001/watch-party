@@ -125,6 +125,10 @@ export function useRoom() {
       setRoomState(state);
       setPlaybackState(state.playback);
       setKickedReason(null);
+      // Load chat history for late-joining participants
+      if (state.chatHistory && state.chatHistory.length > 0) {
+        setChatMessages(state.chatHistory);
+      }
     }
 
     function onUserJoined(payload: UserJoinedPayload) {

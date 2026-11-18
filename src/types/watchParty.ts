@@ -21,6 +21,7 @@ export interface RoomState {
   hostId: string;
   participants: Participant[];
   playback: PlaybackState;
+  chatHistory?: ChatMessage[]; // sent on join so late-joiners see previous messages
 }
 
 export interface ChatMessage {
