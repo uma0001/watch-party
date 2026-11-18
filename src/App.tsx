@@ -45,7 +45,7 @@ export default function App() {
   const videoPlayerRef = useRef<VideoPlayerRef>(null);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-gray-50 text-gray-900 flex flex-col font-sans">
       {/* Toast Notifications */}
       <ToastContainer toasts={toasts} onDismiss={removeToast} />
 
@@ -71,7 +71,7 @@ export default function App() {
       {/* Main Container */}
       <main className="flex-1 flex flex-col">
         {kickedReason && !roomState && (
-          <div className="p-3 bg-red-900/20 border-b border-red-800/40 text-red-400 text-center text-xs font-medium">
+          <div className="p-3 bg-red-50 border-b border-red-200 text-red-600 text-center text-xs font-medium">
             {kickedReason}
           </div>
         )}
@@ -115,13 +115,13 @@ export default function App() {
             {/* Right Column: Sidebar with Tab Switcher for Members & Chat */}
             <div className="lg:col-span-4 flex flex-col gap-4">
               {/* Tab Toggle */}
-              <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-800">
+              <div className="flex bg-gray-100 p-1 rounded-xl">
                 <button
                   onClick={() => setActiveTab('chat')}
                   className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${
                     activeTab === 'chat'
-                      ? 'bg-blue-600 text-white shadow'
-                      : 'text-zinc-500 hover:text-white'
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'text-gray-500 hover:text-gray-800'
                   }`}
                 >
                   Chat ({chatMessages.length})
@@ -130,8 +130,8 @@ export default function App() {
                   onClick={() => setActiveTab('members')}
                   className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${
                     activeTab === 'members'
-                      ? 'bg-blue-600 text-white shadow'
-                      : 'text-zinc-500 hover:text-white'
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'text-gray-500 hover:text-gray-800'
                   }`}
                 >
                   Members ({roomState.participants.length})

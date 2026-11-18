@@ -25,25 +25,22 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onDismis
               exit={{ opacity: 0, x: 40, scale: 0.95 }}
               transition={{ duration: 0.18 }}
               className={`pointer-events-auto flex items-center justify-between p-3 rounded-xl border shadow-lg text-sm ${
-                isError
-                  ? 'bg-zinc-900 border-red-800/60 text-red-300'
-                  : isSuccess
-                  ? 'bg-zinc-900 border-green-800/60 text-green-300'
-                  : isWarning
-                  ? 'bg-zinc-900 border-yellow-800/60 text-yellow-300'
-                  : 'bg-zinc-900 border-zinc-700 text-zinc-200'
+                isError   ? 'bg-white border-red-200 text-red-700'
+                : isSuccess ? 'bg-white border-green-200 text-green-700'
+                : isWarning ? 'bg-white border-yellow-200 text-yellow-700'
+                : 'bg-white border-gray-200 text-gray-700'
               }`}
             >
               <div className="flex items-center gap-2.5 pr-2">
-                {isError && <XCircle className="w-4 h-4 text-red-400 shrink-0" />}
-                {isSuccess && <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />}
-                {isWarning && <AlertCircle className="w-4 h-4 text-yellow-400 shrink-0" />}
-                {!isError && !isSuccess && !isWarning && <Info className="w-4 h-4 text-blue-400 shrink-0" />}
+                {isError   && <XCircle className="w-4 h-4 text-red-500 shrink-0" />}
+                {isSuccess && <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />}
+                {isWarning && <AlertCircle className="w-4 h-4 text-yellow-500 shrink-0" />}
+                {!isError && !isSuccess && !isWarning && <Info className="w-4 h-4 text-blue-500 shrink-0" />}
                 <span className="font-medium text-xs leading-tight">{toast.message}</span>
               </div>
               <button
                 onClick={() => onDismiss(toast.id)}
-                className="p-1 rounded-md hover:bg-zinc-800 transition-colors shrink-0 text-zinc-500 hover:text-white"
+                className="p-1 rounded-md hover:bg-gray-100 transition-colors shrink-0 text-gray-400 hover:text-gray-700"
                 aria-label="Close"
               >
                 <X className="w-3.5 h-3.5" />
