@@ -10,7 +10,7 @@ interface ToastContainerProps {
 
 export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onDismiss }) => {
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none">
+    <div className="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-xs w-full pointer-events-none">
       <AnimatePresence>
         {toasts.map((toast) => {
           const isError = toast.type === 'error';
@@ -20,33 +20,33 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onDismis
           return (
             <motion.div
               key={toast.id}
-              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              initial={{ opacity: 0, y: 12, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, x: 50, scale: 0.9 }}
-              transition={{ duration: 0.2 }}
-              className={`pointer-events-auto flex items-center justify-between p-3.5 rounded-xl border backdrop-blur-md shadow-xl text-sm ${
+              exit={{ opacity: 0, x: 40, scale: 0.95 }}
+              transition={{ duration: 0.18 }}
+              className={`pointer-events-auto flex items-center justify-between p-3 rounded-xl border shadow-lg text-sm ${
                 isError
-                  ? 'bg-rose-950/90 border-rose-800/80 text-rose-200'
+                  ? 'bg-zinc-900 border-red-800/60 text-red-300'
                   : isSuccess
-                  ? 'bg-emerald-950/90 border-emerald-800/80 text-emerald-200'
+                  ? 'bg-zinc-900 border-green-800/60 text-green-300'
                   : isWarning
-                  ? 'bg-amber-950/90 border-amber-800/80 text-amber-200'
-                  : 'bg-zinc-900/90 border-zinc-800 text-zinc-200'
+                  ? 'bg-zinc-900 border-yellow-800/60 text-yellow-300'
+                  : 'bg-zinc-900 border-zinc-700 text-zinc-200'
               }`}
             >
-              <div className="flex items-center gap-3 pr-2">
-                {isError && <XCircle className="w-5 h-5 text-rose-400 shrink-0" />}
-                {isSuccess && <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />}
-                {isWarning && <AlertCircle className="w-5 h-5 text-amber-400 shrink-0" />}
-                {!isError && !isSuccess && !isWarning && <Info className="w-5 h-5 text-indigo-400 shrink-0" />}
-                <span className="font-medium leading-tight">{toast.message}</span>
+              <div className="flex items-center gap-2.5 pr-2">
+                {isError && <XCircle className="w-4 h-4 text-red-400 shrink-0" />}
+                {isSuccess && <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />}
+                {isWarning && <AlertCircle className="w-4 h-4 text-yellow-400 shrink-0" />}
+                {!isError && !isSuccess && !isWarning && <Info className="w-4 h-4 text-blue-400 shrink-0" />}
+                <span className="font-medium text-xs leading-tight">{toast.message}</span>
               </div>
               <button
                 onClick={() => onDismiss(toast.id)}
-                className="p-1 rounded-lg hover:bg-white/10 transition-colors shrink-0 text-zinc-400 hover:text-white"
-                aria-label="Close notification"
+                className="p-1 rounded-md hover:bg-zinc-800 transition-colors shrink-0 text-zinc-500 hover:text-white"
+                aria-label="Close"
               >
-                <X className="w-4 h-4" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </motion.div>
           );

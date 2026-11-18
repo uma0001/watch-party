@@ -35,7 +35,6 @@ export const PlaybackControls: React.FC<PlaybackControlsProps> = ({
       setLocalTime(0);
       return;
     }
-
     const calculateCurrentTime = () => {
       if (playbackState.playState === 'playing') {
         const elapsed = (Date.now() - playbackState.updatedAt) / 1000;
@@ -43,43 +42,33 @@ export const PlaybackControls: React.FC<PlaybackControlsProps> = ({
       }
       return playbackState.currentTime;
     };
-
     setLocalTime(calculateCurrentTime());
-
     if (playbackState.playState === 'playing') {
-      const interval = setInterval(() => {
-        setLocalTime(calculateCurrentTime());
-      }, 500);
+      const interval = setInterval(() => setLocalTime(calculateCurrentTime()), 500);
       return () => clearInterval(interval);
     }
   }, [playbackState]);
 
   const handlePlayPauseToggle = () => {
     if (!canControlPlayback) return;
-    if (isPlaying) {
-      onPause(localTime);
-    } else {
-      onPlay(localTime);
-    }
+    if (isPlaying) onPause(localTime);
+    else onPlay(localTime);
   };
 
   const handleSkipBackward = () => {
     if (!canControlPlayback) return;
-    const targetTime = Math.max(0, localTime - 10);
-    onSeek(targetTime);
+    onSeek(Math.max(0, localTime - 10));
   };
 
   const handleSkipForward = () => {
     if (!canControlPlayback) return;
     const maxBound = duration && duration > 0 ? duration : localTime + 10;
-    const targetTime = Math.min(maxBound, localTime + 10);
-    onSeek(targetTime);
+    onSeek(Math.min(maxBound, localTime + 10));
   };
 
   const handleSeekChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!canControlPlayback) return;
-    const targetTime = parseFloat(e.target.value);
-    onSeek(targetTime);
+    onSeek(parseFloat(e.target.value));
   };
 
   const handleVideoSubmit = (e: React.FormEvent) => {
@@ -93,45 +82,40 @@ export const PlaybackControls: React.FC<PlaybackControlsProps> = ({
   };
 
   return (
-    <div className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-4 lg:p-5 shadow-xl backdrop-blur-xl space-y-4">
-      {/* Top Bar: Play / Pause, Skip 10s, Seek bar, Time, Fullscreen */}
+    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 shadow-lg space-y-4">
+      {/* Controls row */}
       <div className="flex flex-col md:flex-row items-center gap-4">
-        {/* Playback Action Buttons (-10s, Play/Pause, +10s) */}
+        {/* Skip / Play / Skip */}
         <div className="flex items-center gap-2 shrink-0">
-          {/* Rewind -10s Button */}
           <button
             onClick={handleSkipBackward}
             disabled={!canControlPlayback}
             aria-label="Rewind 10 seconds"
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+            className={`w-9 h-9 rounded-lg flex flex-col items-center justify-center text-xs transition-all ${
               !canControlPlayback
-                ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed opacity-50'
-                : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-zinc-700/60'
+                ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed opacity-40'
+                : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-zinc-700'
             }`}
-            title={canControlPlayback ? 'Rewind 10 Seconds' : 'Controls Locked'}
+            title="Rewind 10s"
           >
-            <div className="flex flex-col items-center justify-center leading-none">
-              <RotateCcw className="w-4 h-4 text-indigo-400" />
-              <span className="text-[9px] font-bold mt-0.5">-10s</span>
-            </div>
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span className="text-[9px] font-bold leading-none mt-0.5">10s</span>
           </button>
 
-          {/* Play/Pause Main Button */}
           <button
             onClick={handlePlayPauseToggle}
             disabled={!canControlPlayback}
-            aria-label={canControlPlayback ? (isPlaying ? 'Pause video' : 'Play video') : 'Playback locked'}
-            className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-all ${
+            aria-label={canControlPlayback ? (isPlaying ? 'Pause' : 'Play') : 'Locked'}
+            className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all ${
               !canControlPlayback
-                ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-60'
+                ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-50'
                 : isPlaying
-                ? 'bg-amber-500 hover:bg-amber-400 text-zinc-950 shadow-lg shadow-amber-500/20'
-                : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30'
+                ? 'bg-white text-zinc-900 hover:bg-zinc-200 shadow'
+                : 'bg-blue-600 hover:bg-blue-500 text-white shadow'
             }`}
-            title={canControlPlayback ? (isPlaying ? 'Pause' : 'Play') : 'Playback locked by Host/Moderator'}
           >
             {!canControlPlayback ? (
-              <Lock className="w-5 h-5" />
+              <Lock className="w-4 h-4" />
             ) : isPlaying ? (
               <Pause className="w-5 h-5 fill-current" />
             ) : (
@@ -139,32 +123,27 @@ export const PlaybackControls: React.FC<PlaybackControlsProps> = ({
             )}
           </button>
 
-          {/* Forward +10s Button */}
           <button
             onClick={handleSkipForward}
             disabled={!canControlPlayback}
-            aria-label="Skip forward 10 seconds"
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+            aria-label="Forward 10 seconds"
+            className={`w-9 h-9 rounded-lg flex flex-col items-center justify-center text-xs transition-all ${
               !canControlPlayback
-                ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed opacity-50'
-                : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-zinc-700/60'
+                ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed opacity-40'
+                : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-zinc-700'
             }`}
-            title={canControlPlayback ? 'Forward 10 Seconds' : 'Controls Locked'}
+            title="Forward 10s"
           >
-            <div className="flex flex-col items-center justify-center leading-none">
-              <RotateCw className="w-4 h-4 text-indigo-400" />
-              <span className="text-[9px] font-bold mt-0.5">+10s</span>
-            </div>
+            <RotateCw className="w-3.5 h-3.5" />
+            <span className="text-[9px] font-bold leading-none mt-0.5">10s</span>
           </button>
         </div>
 
-        {/* Timeline Slider */}
+        {/* Timeline */}
         <div className="flex-1 w-full space-y-1">
-          <div className="flex justify-between text-xs text-zinc-400 font-mono">
+          <div className="flex justify-between text-xs text-zinc-500 font-mono">
             <span>{formatTime(localTime)}</span>
-            <span className="text-zinc-500">
-              {duration && duration > 0 ? formatTime(duration) : 'Sync Stream'}
-            </span>
+            <span>{duration && duration > 0 ? formatTime(duration) : '--:--'}</span>
           </div>
           <input
             type="range"
@@ -173,20 +152,19 @@ export const PlaybackControls: React.FC<PlaybackControlsProps> = ({
             value={Math.floor(localTime)}
             onChange={handleSeekChange}
             disabled={!canControlPlayback}
-            aria-label="Seek video timeline"
-            className={`w-full h-2 rounded-lg appearance-none bg-zinc-800 accent-indigo-500 cursor-pointer ${
-              !canControlPlayback ? 'opacity-50 cursor-not-allowed' : 'hover:bg-zinc-700'
+            aria-label="Seek timeline"
+            className={`w-full h-1.5 rounded-full appearance-none bg-zinc-700 accent-blue-500 cursor-pointer ${
+              !canControlPlayback ? 'opacity-40 cursor-not-allowed' : ''
             }`}
           />
         </div>
 
-        {/* Fullscreen Button */}
+        {/* Fullscreen */}
         {onToggleFullscreen && (
           <button
             onClick={onToggleFullscreen}
-            aria-label="Toggle fullscreen mode"
-            className="px-3.5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/20 text-xs font-semibold transition-all flex items-center gap-2 shrink-0"
-            title="Toggle Fullscreen Mode"
+            aria-label="Toggle fullscreen"
+            className="px-3 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300 hover:text-white text-xs font-medium transition-all flex items-center gap-1.5 shrink-0"
           >
             <Maximize className="w-4 h-4" />
             <span className="hidden sm:inline">Fullscreen</span>
@@ -194,21 +172,21 @@ export const PlaybackControls: React.FC<PlaybackControlsProps> = ({
         )}
       </div>
 
-      {/* Bottom Bar: Change Video Input */}
+      {/* Change video row */}
       {canControlPlayback ? (
-        <div className="pt-2 border-t border-zinc-800/80 flex items-center gap-3">
-          <form onSubmit={handleVideoSubmit} className="flex-1 w-full flex items-center gap-2">
+        <div className="pt-3 border-t border-zinc-800 flex items-center gap-2">
+          <form onSubmit={handleVideoSubmit} className="flex-1 flex items-center gap-2">
             <input
               type="text"
               value={videoInput}
               onChange={(e) => setVideoInput(e.target.value)}
               placeholder="Paste YouTube link or video ID to change video..."
-              className="flex-1 px-4 py-2.5 rounded-xl bg-zinc-950 border border-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500 text-xs"
+              className="flex-1 px-3 py-2 rounded-lg bg-zinc-950 border border-zinc-700 text-white placeholder-zinc-600 focus:outline-none focus:border-blue-500 text-xs"
             />
             <button
               type="submit"
               disabled={!videoInput.trim()}
-              className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold transition-colors flex items-center gap-1.5 shrink-0"
+              className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold transition-colors flex items-center gap-1.5 shrink-0"
             >
               <Send className="w-3.5 h-3.5" />
               <span>Load</span>
@@ -216,11 +194,9 @@ export const PlaybackControls: React.FC<PlaybackControlsProps> = ({
           </form>
         </div>
       ) : (
-        <div className="pt-2 border-t border-zinc-800/80 flex items-center justify-between text-xs text-zinc-400">
-          <div className="flex items-center gap-2">
-            <Lock className="w-3.5 h-3.5 text-amber-400" />
-            <span>You are currently in Participant mode. Only Host or Moderator can change videos or control playback.</span>
-          </div>
+        <div className="pt-3 border-t border-zinc-800 flex items-center gap-2 text-xs text-zinc-500">
+          <Lock className="w-3.5 h-3.5 text-zinc-600" />
+          <span>Playback is controlled by the Host or Moderator.</span>
         </div>
       )}
     </div>

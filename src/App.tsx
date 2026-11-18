@@ -44,7 +44,7 @@ export default function App() {
   const videoPlayerRef = useRef<VideoPlayerRef>(null);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans">
       {/* Toast Notifications */}
       <ToastContainer toasts={toasts} onDismiss={removeToast} />
 
@@ -70,7 +70,7 @@ export default function App() {
       {/* Main Container */}
       <main className="flex-1 flex flex-col">
         {kickedReason && !roomState && (
-          <div className="p-4 bg-rose-500/10 border-b border-rose-500/20 text-rose-300 text-center text-xs font-semibold">
+          <div className="p-3 bg-red-900/20 border-b border-red-800/40 text-red-400 text-center text-xs font-medium">
             {kickedReason}
           </div>
         )}
@@ -108,24 +108,24 @@ export default function App() {
 
             {/* Right Column: Sidebar with Tab Switcher for Members & Chat */}
             <div className="lg:col-span-4 flex flex-col gap-4">
-              {/* Mobile / Tablet Tab Toggle */}
-              <div className="flex bg-zinc-900 p-1 rounded-2xl border border-zinc-800">
+              {/* Tab Toggle */}
+              <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-800">
                 <button
                   onClick={() => setActiveTab('chat')}
-                  className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-all ${
+                  className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${
                     activeTab === 'chat'
-                      ? 'bg-indigo-600 text-white shadow-md'
-                      : 'text-zinc-400 hover:text-white'
+                      ? 'bg-blue-600 text-white shadow'
+                      : 'text-zinc-500 hover:text-white'
                   }`}
                 >
-                  Party Chat ({chatMessages.length})
+                  Chat ({chatMessages.length})
                 </button>
                 <button
                   onClick={() => setActiveTab('members')}
-                  className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-all ${
+                  className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${
                     activeTab === 'members'
-                      ? 'bg-indigo-600 text-white shadow-md'
-                      : 'text-zinc-400 hover:text-white'
+                      ? 'bg-blue-600 text-white shadow'
+                      : 'text-zinc-500 hover:text-white'
                   }`}
                 >
                   Members ({roomState.participants.length})
